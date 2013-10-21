@@ -1,0 +1,112 @@
+<script>
+
+var currentChoice = null;
+var currentCount = 0;
+
+function setBadge(inputCount)
+{
+	if(currentChoice)
+		chrome.browserAction.setBadgeText({"text": inputCount});
+	else
+		chrome.browserAction.setBadgeText({"text":""});
+}
+
+function highlight(target)
+{
+	if(target != "None")
+		currentChoice = target;
+	else
+		currentChoice = null;
+
+        chrome.tabs.getSelected(null,
+                function(tab) {
+                        var request = {"command":"highlight", "name":target};
+                        chrome.tabs.sendRequest(tab.id,
+                                request,
+                                function(response) {
+					currentCount = response.count;
+					setBadge(currentCount);
+                                }
+                        );
+                }
+        );
+}
+
+function outsideFacebook()
+{
+	chrome.browserAction.setIcon({"path": "facebook_bw.png"});
+}
+
+function insideFacebook()
+{
+	chrome.browserAction.setIcon({"path": "facebook.png"});
+	if(currentChoice)
+		highlight(currentChoice);
+	else
+		highlight("None");
+}
+
+function resetExtension()
+{
+	chrome.browserAction.setBadgeText({text:""});
+}
+
+function updateListener(tabID, changeInfo, tab)
+{
+	resetExtension();
+	if(changeInfo.url && tab.selected)
+	{
+		if(changeInfo.url.search(/www\.facebook\.com/) == -1)
+			outsideFacebook();
+		else
+			insideFacebook();
+	}
+	else if(!changeInfo.status)
+		outsideFacebook();
+}
+
+function do_selectionChangeListener(tab)
+{
+	if(tab.selected)
+	{
+		if(tab.url.search(/www\.facebook\.com/) == -1)
+			outsideFacebook();
+		else
+			insideFacebook();
+	}
+	else
+		outsideFacebook();
+}
+
+function selectionChangeListener(tabID, selectInfo)
+{
+	resetExtension();
+	chrome.tabs.get(tabID, do_selectionChangeListener);
+}
+
+function messageListener(request, sender, sendResponse)
+{
+	if(request.command == "highlight")
+	{
+		highlight(request.name);
+		sendResponse({});
+	}
+	else if(request.command == "currentChoice")
+	{
+		sendResponse({"name": currentChoice});
+	}
+}
+
+function init()
+{
+	chrome.tabs.onUpdated.addListener(updateListener);
+	chrome.tabs.onSelectionChanged.addListener(selectionChangeListener);
+	chrome.extension.onRequest.addListener(messageListener);
+        chrome.browserAction.setBadgeBackgroundColor({"color": [0,0,255,255]});
+
+	chrome.tabs.getSelected(null, do_selectionChangeListener);
+}
+
+addEventListener("load", init, false);
+
+</script>

@@ -1,0 +1,10 @@
+<script>
+var count = 0;
+chrome.browserAction.onClicked.addListener(
+	function(tab) {
+		alert("Hello!");
+		count++;
+		console.log("Count = " + count);
+	}
+);
+</script>

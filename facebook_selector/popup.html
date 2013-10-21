@@ -1,0 +1,221 @@
+<style>
+body {
+        font-family: verdana, sans-serif;
+        background: #eeeeee;
+}
+</style>
+
+<script>
+
+var currentChoice = null;
+var currentTable = null;
+var storageKey = "facebookHighlighter";
+
+function highlight(targetName)
+{
+	currentChoice = targetName;
+	chrome.extension.sendRequest(
+		{"command":"highlight", "name":targetName},
+		function(response) { }
+	);
+}
+
+function readLocalStorage()
+{
+	return JSON.parse(localStorage.getItem(storageKey));
+}
+
+function setLocalStorage(array)
+{
+	localStorage.removeItem(storageKey);
+	localStorage.setItem(storageKey, JSON.stringify(array));
+}
+
+function do_constructTable()
+{
+	var defaultArray = ["None"];
+
+	var localArray = readLocalStorage();
+
+	var idArray = new Array();
+
+	for(var i = 0; i < defaultArray.length; i++)
+		idArray.push(defaultArray[i]);
+
+	if(localArray)
+	{
+		for(var i = 0; i < localArray.length; i++)
+			idArray.push(localArray[i]);
+	}
+
+	var t = document.createElement("table");
+	var name = "xx";
+	var str = "";
+
+	for(var i = 0; i < idArray.length; i++)
+	{
+		str += "<tr>";
+		str += "<td>";
+		str +=
+			"<nobr><input type=\"radio\" id=\""
+			+ idArray[i]
+			+ "\" name=\""
+			+ name
+			+ "\" onclick=\"highlight(\'"
+			+ idArray[i]
+			+ "');\"><label for=\""
+			+ idArray[i]
+			+ "\">"
+			+ idArray[i]
+			+ "</label></nobr>";
+		str += "</td>";
+		if(idArray[i] != "None")
+		{
+			str +=
+				"<td><font size=-1><a onclick=\"removeUser(event);\" id=\"remove "
+				+ idArray[i]
+				+ "\" style=\"cursor:pointer;\">&nbsp;&nbsp;X&nbsp;&nbsp;</a>"
+				+ "</font></td>";
+		}
+		else
+		{
+			str += "<td>&nbsp;</td>";
+		}
+		str += "</tr>";
+	}
+
+	t.innerHTML = str;
+
+	return t;
+}
+
+function destroyTable()
+{
+	if(currentTable)
+	{
+		document.body.removeChild(currentTable);
+		currentTable = null;
+	}
+}
+
+function constructTable()
+{
+	currentTable = do_constructTable();
+	document.body.appendChild(currentTable);
+}
+
+function removeUser(event)
+{
+	var index = event.target.id.indexOf("remove");
+	var targetID = event.target.id.substr(index+7);
+
+	console.log("targetID = |" + targetID + "|");
+
+	if(currentChoice == targetID)		// removing the selected user...
+	{
+		document.getElementById(targetID).checked = false;
+		document.getElementById("None").checked = true;
+		highlight("None");
+	}
+
+	var array = readLocalStorage();
+	if(array == null)
+	{
+		alert("localStorage is empty in removeUser()!");
+		return;
+	}
+
+	var newArray = new Array();
+	for(var i = 0; i < array.length; i++)
+	{
+		if(targetID != array[i])
+			newArray.push(array[i]);
+	}
+
+	setLocalStorage(newArray);
+
+	destroyTable();
+	constructTable();	
+
+	console.log("removeUser() done!");
+}
+
+function addUser(event)
+{
+	if(event.keyCode == 13)		// new-line character
+	{
+		var input = event.target.value;
+		input = input.replace(/^\s*/g, "");
+		input = input.replace(/\s*$/g, "");
+
+		if(input && input != "")
+		{
+			var localArray = readLocalStorage();
+
+			if(localArray == null)
+				localArray = new Array();
+
+			localArray.push(input);
+
+			setLocalStorage(localArray);
+
+			destroyTable();
+			constructTable();
+		}
+
+		event.target.value = "";		// finishing touch!
+	}
+}
+
+function displayError()
+{
+	document.body.innerHTML = "<p><nobr>You're not using Facebook.</nobr></p>";
+}
+
+function setCurrentChoice()
+{
+	chrome.extension.sendRequest(
+		{"command":"currentChoice"},
+		function(response) {
+			if(response.name)
+			{
+				currentChoice = response.name;
+				var obj = document.getElementById(response.name);
+				if(obj)
+					obj.checked = true;
+			}
+			else
+			{
+				var obj = document.getElementById("None");
+				if(obj)
+					obj.checked = true;
+			}
+		}
+	);
+}
+
+function init()
+{
+	chrome.tabs.getSelected(null,
+		function(tab) {
+			if(tab.url.search(/www\.facebook\.com/) == -1)
+				displayError();
+			else
+			{
+				constructTable();
+				setCurrentChoice();
+			}
+		}
+	);
+}
+
+addEventListener("load", init, false);
+
+</script>
+
+<body>
+<p>
+	<nobr><span style="border:1px solid gray; padding:1px;">+</span>
+	<input id="newUser" type="text" size="10" onkeypress="addUser(event);" style="border:1px solid gray;"></nobr>
+</p>
+</body>

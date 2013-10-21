@@ -1,0 +1,59 @@
+<script>
+var playCount = 0;
+
+function outsideFacebook()
+{
+	chrome.browserAction.setIcon({"path": "facebook_bw.png"});
+	chrome.browserAction.setBadgeBackgroundColor({"color": [100,100,100,255]});
+}
+
+function insideFacebook()
+{
+	playCount++;
+	chrome.browserAction.setIcon({"path": "facebook.png"});
+	chrome.browserAction.setBadgeBackgroundColor({"color": [0,0,255,255]});
+	chrome.browserAction.setBadgeText({"text": "" + playCount});
+}
+
+function updateListener(tabID, changeInfo, tab)
+{
+	console.log("update");
+	if(changeInfo.url && tab.selected)
+	{
+		if(tab.url.search(/www\.facebook\.com/) == -1)
+			outsideFacebook();
+		else
+			insideFacebook();
+	}
+}
+
+function do_selectionChangeListener(tab)
+{
+	console.log("selectionChange");
+	if(tab.selected)
+	{
+		if(tab.url.search(/www\.facebook\.com/) == -1)
+			outsideFacebook();
+		else
+			insideFacebook();
+	}
+	else
+		outsideFacebook();
+}
+
+function selectionChangeListener(tabID, selectInfo)
+{
+	chrome.tabs.get(tabID, do_selectionChangeListener);
+}
+
+function init()
+{
+	chrome.tabs.onUpdated.addListener(updateListener);
+	chrome.tabs.onSelectionChanged.addListener(selectionChangeListener);
+	chrome.tabs.getSelected(null, do_selectionChangeListener);
+	chrome.browserAction.setBadgeBackgroundColor({"color": [100,100,100,255]});
+}
+
+addEventListener("load", init, false);
+
+</script>

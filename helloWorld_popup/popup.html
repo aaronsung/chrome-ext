@@ -1,0 +1,19 @@
+<html>
+
+<script>
+
+function init()
+{
+	var colorArray = ["red", "green", "blue", "magenta", "cyan", "gray", "black", "pink"];
+	var index = Math.floor( Math.random() * colorArray.length );
+	document.body.style.color = colorArray[index];
+	console.log(colorArray[index]);
+}
+
+addEventListener("load", init, false);
+</script>
+
+<body>
+<p><nobr><b>Hello World!</b></nobr></p>
+</body>
+</html>

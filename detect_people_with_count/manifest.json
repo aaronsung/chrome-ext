@@ -1,0 +1,31 @@
+{
+	"name": "Detect person with count",
+
+	"version": "1.0",
+
+	"description": "For CSCI4140, 2011 April",
+
+	"background_page": "background.html",
+
+	"browser_action": {
+		"default_icon": "facebook_bw.png"
+	},
+
+	"icons": {
+		"48": "facebook.png"
+	},
+
+	"content_scripts": [
+	  {
+		"matches": ["http://www.facebook.com/*", "https://www.facebook.com/*"],
+		"js": ["content.js"],
+		"run_at": "document_end"
+	  }
+	],
+
+	"permissions": [
+		"http://www.facebook.com/*",
+		"https://www.facebook.com/*",
+		"tabs"
+	]
+}

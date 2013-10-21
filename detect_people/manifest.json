@@ -1,0 +1,21 @@
+{
+	"name": "Detect a person in Facekbook",
+
+	"version": "1.0",
+
+	"description": "For CSCI4140, 2011 April",
+
+	"content_scripts": [
+	  {
+		"matches": ["http://www.facebook.com/*", "https://www.facebook.com/*"],
+		"js": ["content.js"],
+		"run_at": "document_end"
+	  }
+	],
+
+	"permissions": [
+		"http://www.facebook.com/*",
+		"https://www.facebook.com/*",
+		"tabs"
+	]
+}

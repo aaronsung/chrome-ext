@@ -1,0 +1,18 @@
+{
+	"name": "Hello World with Popup",
+
+	"version": "1.0",
+
+	"description": "For CSCI4140, 2011 April",
+
+	"background_page": "background.html",
+
+	"icons": {
+		"48": "cuhk.png"
+	},
+
+	"browser_action": {
+		"default_icon": "cuhk.png",
+		"default_popup": "popup.html"
+	}
+}
